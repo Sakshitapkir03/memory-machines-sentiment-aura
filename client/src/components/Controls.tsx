@@ -1,31 +1,40 @@
-// src/components/Controls.tsx
-import React from "react";
 
-type ControlsProps = {
+
+interface ControlsProps {
   isRecording: boolean;
   onToggle: () => void;
   statusText: string;
-};
+  onClear: () => void; // Clear handler passed from App
+}
 
-const Controls: React.FC<ControlsProps> = ({
+export default function Controls({
   isRecording,
   onToggle,
   statusText,
-}) => {
+  onClear,
+}: ControlsProps) {
   return (
-    <div className="controls-panel">
-      <button
-        className={`record-btn ${isRecording ? "recording" : ""}`}
-        onClick={onToggle}
-      >
-        {isRecording ? "Stop" : "Start"}
-      </button>
-      <div className="status-indicator">
-        <span className={`dot ${isRecording ? "on" : "off"}`} />
-        <span>{statusText}</span>
+    <div className="controls">
+      <div className="controls-buttons">
+        <button
+          className={`primary-btn ${isRecording ? "stop" : "start"}`}
+          onClick={onToggle}
+        >
+          {isRecording ? "Stop" : "Start"}
+        </button>
+
+        <button
+          className="secondary-btn clear-btn"
+          onClick={onClear}
+          
+        >
+          Clear
+        </button>
+      </div>
+
+      <div className="controls-status">
+        <span>Status: {statusText}</span>
       </div>
     </div>
   );
-};
-
-export default Controls;
+}

@@ -1,48 +1,5 @@
-/* #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
+/* ---------------- GLOBAL ---------------- */
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-} */
-/* src/App.css */
-
-/* Global */
 html,
 body,
 #root {
@@ -61,14 +18,15 @@ body,
   overflow: hidden;
 }
 
-/* Aura background */
+/* Aura Background */
 .aura-layer canvas {
   position: fixed !important;
   inset: 0;
   z-index: 0;
 }
 
-/* Overlay */
+/* ---------------- UI Overlay ---------------- */
+
 .ui-overlay {
   position: relative;
   z-index: 1;
@@ -77,11 +35,14 @@ body,
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  box-sizing: border-box;
   background: radial-gradient(circle at top, #02061780 0, #020617f0 55%);
+  box-sizing: border-box;
 }
 
-/* Top layout */
+/* ---------------------------------------------------------------- */
+/* ---------------- TOP ROW PANELS (TRANSCRIPT + KEYWORDS) -------- */
+/* ---------------------------------------------------------------- */
+
 .top-row {
   display: flex;
   gap: 1rem;
@@ -109,7 +70,7 @@ body,
   color: #9ca3af;
 }
 
-/* Transcript */
+/* Transcript Content */
 .transcript-content {
   flex: 1;
   overflow-y: auto;
@@ -126,7 +87,7 @@ body,
   line-height: 1.4;
 }
 
-/* Keywords */
+/* Keywords Cloud */
 .keywords-cloud {
   display: flex;
   flex-wrap: wrap;
@@ -143,7 +104,8 @@ body,
   box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
 }
 
-/* Bottom row */
+/* ---------------- BOTTOM ROW ---------------- */
+
 .bottom-row {
   display: flex;
   justify-content: space-between;
@@ -151,58 +113,89 @@ body,
   gap: 1rem;
 }
 
-.controls-panel {
+/* ---------------------------------------------------------------- */
+/* ---------------- CONTROLS (Start / Stop / Clear) --------------- */
+/* ---------------------------------------------------------------- */
+
+.controls {
   display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-/* Record button */
-.record-btn {
-  border-radius: 999px;
-  padding: 0.6rem 1.4rem;
-  border: none;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  background: radial-gradient(circle at top, #22c55e, #15803d);
-  color: #f9fafb;
-  box-shadow: 0 0 18px rgba(34, 197, 94, 0.55);
-  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
-}
-
-.record-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0 22px rgba(34, 197, 94, 0.7);
-}
-
-.record-btn.recording {
-  background: radial-gradient(circle at top, #ef4444, #991b1b);
-  box-shadow: 0 0 18px rgba(248, 113, 113, 0.65);
-}
-
-/* Status */
-.status-indicator {
-  display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 0.5rem;
-  color: #9ca3af;
-  font-size: 0.9rem;
 }
 
-.status-indicator .dot {
-  width: 10px;
-  height: 10px;
+.controls-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* ---- Base button styling ---- */
+.primary-btn,
+.secondary-btn {
+  padding: 0.65rem 1.6rem;
   border-radius: 999px;
-  background: #4b5563;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.15s ease,
+    background 0.3s ease,
+    color 0.3s ease;
 }
 
-.status-indicator .dot.on {
-  background: #22c55e;
-  box-shadow: 0 0 12px rgba(34, 197, 94, 0.75);
+/* ---- START button (Green Gradient) ---- */
+.primary-btn.start {
+  background: linear-gradient(135deg, #3bff91, #1cb86f);
+  color: #062814;
+  box-shadow: 0 4px 18px rgba(0, 255, 170, 0.35);
 }
 
-/* Sentiment badge */
+/* ---- STOP button (Deep Green / Slight Red Tone) ---- */
+.primary-btn.stop {
+  background: linear-gradient(135deg, #16a34a, #047857);
+  color: #e7f9f0;
+  box-shadow: 0 4px 22px rgba(34, 197, 94, 0.55);
+}
+
+/* Hover effect */
+.primary-btn.start:hover,
+.primary-btn.stop:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 26px rgba(0, 255, 170, 0.55);
+}
+
+/* Active click */
+.primary-btn:active {
+  transform: translateY(0);
+}
+
+/* ---- CLEAR button (Mint Gradient) ---- */
+.secondary-btn.clear-btn {
+  background: linear-gradient(135deg, #bbf7d0, #6ee7b7);
+  color: #064e3b;
+  border: 1px solid rgba(22, 163, 74, 0.4);
+  box-shadow: 0 3px 16px rgba(45, 212, 191, 0.35);
+}
+
+.secondary-btn.clear-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(45, 212, 191, 0.55);
+}
+
+/* Controls Status Text */
+.controls-status span {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+/* ---------------- SENTIMENT BADGE ---------------- */
+
 .sentiment-badge {
   display: flex;
   align-items: center;
