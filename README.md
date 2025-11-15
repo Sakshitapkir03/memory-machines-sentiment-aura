@@ -43,10 +43,10 @@ The focus is on orchestrating:
 ### 2.1 Prerequisites
 
 - Node.js (v18+)
-- Python 3.10+ (you are using 3.13.1)
+- Python 3.10+ (i am using 3.13.1)
 - npm (comes with Node)
 - A Deepgram API key
-- (Optional but recommended) An OpenAI API key with quota
+- (recommended) An OpenAI API key with quota
 
 ---
 
