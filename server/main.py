@@ -187,18 +187,79 @@ NEGATIVE_WORDS = [
     "worried", "nervous", "stressed", "anxious", "negative",
     "frustrated", "tired",
 ]
+NEGATION_WORDS = [
+    "not",
+    "no",
+    "never",
+    "don't",
+    "dont",
+    "didn't",
+    "didnt",
+    "isn't",
+    "isnt",
+    "wasn't",
+    "wasnt",
+    "can't",
+    "cannot",
+    "won't",
+    "wouldn't",
+    "shouldn't",
+]
 
-
+# def local_sentiment(text: str) -> float:
+#     text_low = text.lower()
+#     pos = sum(1 for w in POSITIVE_WORDS if w in text_low)
+#     neg = sum(1 for w in NEGATIVE_WORDS if w in text_low)
+#     if pos == 0 and neg == 0:
+#         return 0.5
+#     raw = (pos - neg) / max(pos + neg, 1)  # [-1,1]
+#     score = (raw + 1) / 2                  # [0,1]
+#     return max(0.0, min(1.0, score))
 def local_sentiment(text: str) -> float:
-    text_low = text.lower()
-    pos = sum(1 for w in POSITIVE_WORDS if w in text_low)
-    neg = sum(1 for w in NEGATIVE_WORDS if w in text_low)
-    if pos == 0 and neg == 0:
-        return 0.5
-    raw = (pos - neg) / max(pos + neg, 1)  # [-1,1]
-    score = (raw + 1) / 2                  # [0,1]
-    return max(0.0, min(1.0, score))
+    """
+    Simple rule-based sentiment with negation handling.
 
+    - Tokenizes the text.
+    - If a positive word is preceded by a negation word within a small window
+      (e.g., "not happy", "never excited", "don't feel great"), we count it as negative.
+    - If a negative word is preceded by a negation word (e.g., "not bad"),
+      we count it as positive.
+    """
+    text_low = text.lower()
+    # Basic tokenization: words only (letters and apostrophes)
+    tokens = re.findall(r"[a-z']+", text_low)
+
+    pos = 0
+    neg = 0
+
+    for i, tok in enumerate(tokens):
+        # Look back a small window for negation (e.g., "not really happy")
+        window_start = max(0, i - 5)
+        window = tokens[window_start:i]
+        has_negation = any(w in NEGATION_WORDS for w in window)
+
+        if tok in POSITIVE_WORDS:
+            if has_negation:
+                # Negated positive => treat as negative
+                neg += 1
+            else:
+                pos += 1
+        elif tok in NEGATIVE_WORDS:
+            if has_negation:
+                # Negated negative (e.g., "not bad") => treat as positive
+                pos += 1
+            else:
+                neg += 1
+
+    if pos == 0 and neg == 0:
+        score = 0.5
+    else:
+        raw = (pos - neg) / max(pos + neg, 1)  # [-1,1]
+        score = (raw + 1) / 2                  # [0,1]
+
+    # Clamp to [0, 1]
+    score = max(0.0, min(1.0, score))
+    return score
 
 def local_keywords(text: str, max_keywords: int = 8) -> List[str]:
     clean = re.sub(r"[^a-zA-Z0-9\s]", " ", text.lower())
@@ -241,16 +302,44 @@ def build_response_from_score_and_text(score: float, text: str) -> ProcessTextRe
 SYSTEM_PROMPT = """
 You are an analysis engine for short snippets of conversation.
 
-Given a piece of user speech, your ONLY job is to return:
+Your ONLY job is to return:
 - sentiment_score: a float between 0.0 and 1.0
 - sentiment_label: "negative", "neutral", or "positive"
 - keywords: an array of 2-8 concise, meaningful keywords (no stopwords)
 
-Rules:
+CRITICAL SENTIMENT RULES:
+
+- Pay VERY close attention to NEGATIONS:
+  - Words like "not", "never", "hardly", "don't", "isn't", "wasn't", "no", "without"
+  - If a normally positive word is negated, treat the overall emotion as negative
+    Examples:
+    - "I am not happy" → negative
+    - "I'm not excited about this" → negative
+    - "Things are not going well" → negative
+- Sentences like:
+  - "I feel sad", "I feel I'm not happy", "I'm struggling", "I don't feel good",
+    "I don't like this", "I hate this", "I'm really tired and not okay"
+  should all be classified as NEGATIVE.
+
+- Only classify as POSITIVE if the overall tone is clearly positive or optimistic:
+  - "I feel happy", "I'm really excited", "things are going great", "this is amazing"
+- Use NEUTRAL only when the text is mostly factual and not emotionally charged.
+
+SCORING BANDS:
 - sentiment_score < 0.35 => "negative"
 - 0.35 <= sentiment_score <= 0.65 => "neutral"
 - sentiment_score > 0.65 => "positive"
-- Always return valid JSON only. No extra commentary.
+
+OUTPUT FORMAT (IMPORTANT):
+- Always return a single JSON object only, with EXACTLY these keys:
+
+{
+  "sentiment_score": <float between 0 and 1>,
+  "sentiment_label": "negative" | "neutral" | "positive",
+  "keywords": ["keyword1", "keyword2", "..."]
+}
+
+- No extra commentary, no extra fields, no explanations.
 """.strip()
 
 
@@ -315,7 +404,14 @@ def process_text(payload: ProcessTextRequest):
         # If LLM gave us nothing useful, fall back to local keywords.
         if not keywords:
             keywords = local_keywords(text)
+        local_score = local_sentiment(text)
 
+        if local_score < 0.3 and label == "positive":
+            label = "negative"
+            score = min(score, local_score, 0.3)
+        elif local_score < 0.3 and label == "neutral":
+            label = "negative"
+            score = min(score, local_score, 0.35)
         return ProcessTextResponse(
             sentiment_score=score,
             sentiment_label=label,
